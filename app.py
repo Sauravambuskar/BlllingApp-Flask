@@ -45,7 +45,7 @@ def init_db():
     c.execute('SELECT count(*) FROM products')
     if c.fetchone()[0] == 0:
         c.executemany('INSERT INTO products (name, price) VALUES (?, ?)',
-                      [('Laptop', 999.99), ('Mouse', 25.50), ('Keyboard', 45.00), ('Monitor', 150.00)])
+                      [('Enterprise Laptop X1', 1299.99), ('Wireless Ergonomic Mouse', 45.50), ('Mechanical Keyboard', 85.00), ('4K Monitor', 350.00)])
         print("Database seeded with default products.")
 
     conn.commit()
@@ -72,48 +72,207 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask Billing System</title>
+    <title>Enterprise Billing Suite</title>
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { background-color: #f8f9fa; }
-        .navbar { background-color: #2c3e50; }
-        .navbar-brand { color: white !important; font-weight: bold; }
-        .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .btn-primary { background-color: #3498db; border-color: #3498db; }
-        .btn-success { background-color: #2ecc71; border-color: #2ecc71; }
-        .table thead th { background-color: #ecf0f1; border-top: none; }
-        .total-section { font-size: 1.5rem; font-weight: bold; text-align: right; color: #2c3e50; }
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #0f172a;
+            --sidebar-text: #94a3b8;
+            --sidebar-hover: #1e293b;
+            --sidebar-active: #3b82f6;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            font-family: 'Inter', sans-serif; 
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .sidebar-brand {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            color: var(--sidebar-text);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link:hover {
+            background-color: var(--sidebar-hover);
+            color: white;
+        }
+
+        .nav-link.active {
+            background-color: var(--sidebar-active);
+            color: white;
+        }
+
+        .nav-link i { width: 20px; text-align: center; }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* Tables */
+        .table thead th {
+            background-color: #f8fafc;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem;
+        }
+        
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--sidebar-active);
+            border-color: var(--sidebar-active);
+            padding: 0.6rem 1.2rem;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        /* Invoice Sheet Look */
+        .invoice-sheet {
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 40px;
+            min-height: 800px;
+        }
+
+        /* Utilities */
+        .text-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark mb-4">
-    <div class="container">
-        <a class="navbar-brand" href="/"><i class="fas fa-file-invoice-dollar"></i> Flask Billing</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="/">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="/products">Products</a></li>
-                <li class="nav-item"><a class="nav-link" href="/create_invoice">New Invoice</a></li>
-            </ul>
+<!-- Sidebar -->
+<nav class="sidebar">
+    <a href="/" class="sidebar-brand">
+        <i class="fas fa-layer-group text-primary"></i> 
+        <span>NexusBilling</span>
+    </a>
+    <div class="nav flex-column">
+        <div class="nav-item">
+            <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
+                <i class="fas fa-chart-pie"></i> Dashboard
+            </a>
+        </div>
+        <div class="nav-item">
+            <a class="nav-link {% if request.path == '/create_invoice' %}active{% endif %}" href="/create_invoice">
+                <i class="fas fa-plus-circle"></i> New Invoice
+            </a>
+        </div>
+        <div class="nav-item">
+            <a class="nav-link {% if request.path == '/products' %}active{% endif %}" href="/products">
+                <i class="fas fa-box"></i> Products
+            </a>
+        </div>
+        <div class="mt-auto">
+            <a class="nav-link" href="#" onclick="alert('Settings not implemented')">
+                <i class="fas fa-cog"></i> Settings
+            </a>
         </div>
     </div>
 </nav>
 
-<div class="container">
+<!-- Main Content -->
+<main class="main-content">
     {% if message %}
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     {% endif %}
 
     {% block content %}{% endblock %}
-</div>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% block scripts %}{% endblock %}
@@ -124,53 +283,101 @@ HTML_TEMPLATE = """
 DASHBOARD_TEMPLATE = """
 {% extends "base" %}
 {% block content %}
-<div class="row">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 fw-bold mb-1">Dashboard Overview</h2>
+        <p class="text-secondary mb-0">Welcome back, Admin.</p>
+    </div>
+    <a href="/create_invoice" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Create Invoice</a>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-5">
     <div class="col-md-4">
-        <div class="card text-center p-4">
-            <h3><i class="fas fa-box text-primary"></i> {{ product_count }}</h3>
-            <p>Products Available</p>
-            <a href="/products" class="btn btn-outline-primary btn-sm">Manage</a>
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-secondary fw-medium">Total Revenue</div>
+                    <div class="bg-primary bg-opacity-10 p-2 rounded text-primary">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0">${{ "%.2f"|format(total_revenue) }}</h3>
+                <small class="text-success"><i class="fas fa-arrow-up me-1"></i> +2.5% vs last month</small>
+            </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card text-center p-4">
-            <h3><i class="fas fa-file-invoice text-success"></i> {{ invoice_count }}</h3>
-            <p>Invoices Generated</p>
-            <a href="/create_invoice" class="btn btn-outline-success btn-sm">New Invoice</a>
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-secondary fw-medium">Total Invoices</div>
+                    <div class="bg-success bg-opacity-10 p-2 rounded text-success">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0">{{ invoice_count }}</h3>
+                <small class="text-secondary">Across all time</small>
+            </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card text-center p-4">
-            <h3><i class="fas fa-dollar-sign text-warning"></i> ${{ "%.2f"|format(total_revenue) }}</h3>
-            <p>Total Revenue</p>
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-secondary fw-medium">Active Products</div>
+                    <div class="bg-warning bg-opacity-10 p-2 rounded text-warning">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0">{{ product_count }}</h3>
+                <small class="text-secondary">In catalog</small>
+            </div>
         </div>
     </div>
 </div>
 
-<h4 class="mt-4 mb-3">Recent Invoices</h4>
-<div class="card p-3">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Date</th>
-                <th>Customer</th>
-                <th>Total</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for invoice in invoices %}
-            <tr>
-                <td>#{{ invoice.id }}</td>
-                <td>{{ invoice.date }}</td>
-                <td>{{ invoice.customer_name }}</td>
-                <td>${{ "%.2f"|format(invoice.total_amount) }}</td>
-                <td><a href="/invoice/{{ invoice.id }}" class="btn btn-sm btn-info text-white">View</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<!-- Recent Invoices Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Transactions</h5>
+        <button class="btn btn-sm btn-outline-secondary">Export CSV</button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Invoice ID</th>
+                    <th>Date Issued</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                    <td><span class="fw-bold text-primary">#INV-{{ "%05d"|format(invoice.id) }}</span></td>
+                    <td>{{ invoice.date }}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light rounded-circle p-2 me-2 text-secondary">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            {{ invoice.customer_name }}
+                        </div>
+                    </td>
+                    <td class="fw-semibold">${{ "%.2f"|format(invoice.total_amount) }}</td>
+                    <td><span class="status-badge">Paid</span></td>
+                    <td class="text-end">
+                        <a href="/invoice/{{ invoice.id }}" class="btn btn-sm btn-light border">View Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}
 """
@@ -178,50 +385,68 @@ DASHBOARD_TEMPLATE = """
 PRODUCTS_TEMPLATE = """
 {% extends "base" %}
 {% block content %}
-<div class="row">
+<div class="row g-4">
+    <!-- Add Product Form -->
     <div class="col-md-4">
-        <div class="card p-3">
-            <h5>Add New Product</h5>
-            <form action="/add_product" method="POST">
-                <div class="mb-3">
-                    <label>Product Name</label>
-                    <input type="text" name="name" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label>Price ($)</label>
-                    <input type="number" step="0.01" name="price" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Add Product</button>
-            </form>
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Add New Product</h5>
+            </div>
+            <div class="card-body p-4">
+                <form action="/add_product" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Product Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Consultation Fee" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small">Unit Price ($)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" name="price" class="form-control" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus me-2"></i> Add to Catalog
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
+
+    <!-- Product List -->
     <div class="col-md-8">
-        <div class="card p-3">
-            <h5>Product List</h5>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product in products %}
-                    <tr>
-                        <td>{{ product.id }}</td>
-                        <td>{{ product.name }}</td>
-                        <td>${{ "%.2f"|format(product.price) }}</td>
-                        <td>
-                            <form action="/delete_product/{{ product.id }}" method="POST" style="display:inline;">
-                                <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Product Catalog</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Product Name</th>
+                            <th>Unit Price</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td class="text-secondary">#{{ "%03d"|format(product.id) }}</td>
+                            <td class="fw-medium">{{ product.name }}</td>
+                            <td>${{ "%.2f"|format(product.price) }}</td>
+                            <td class="text-end">
+                                <form action="/delete_product/{{ product.id }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Are you sure?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -231,89 +456,131 @@ PRODUCTS_TEMPLATE = """
 CREATE_INVOICE_TEMPLATE = """
 {% extends "base" %}
 {% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2">
-        <div class="card p-4">
-            <h3 class="mb-4">Create New Invoice</h3>
-            
-            <form id="invoiceForm" action="/save_invoice" method="POST">
-                <div class="mb-3">
-                    <label>Customer Name</label>
-                    <input type="text" name="customer_name" class="form-control" required placeholder="Enter customer name">
-                </div>
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3 fw-bold">New Invoice</h2>
+        <a href="/" class="btn btn-outline-secondary">Cancel</a>
+    </div>
 
-                <h5>Items</h5>
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="itemsTable">
-                        <thead>
-                            <tr>
-                                <th width="50%">Product</th>
-                                <th width="15%">Price</th>
-                                <th width="15%">Qty</th>
-                                <th width="15%">Total</th>
-                                <th width="5%"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="itemsBody">
-                            <!-- Items will be added here via JS -->
-                        </tbody>
-                    </table>
+    <form id="invoiceForm" action="/save_invoice" method="POST">
+        <div class="row g-4">
+            <!-- Customer Details -->
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">Client Details</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">Customer / Company Name</label>
+                            <input type="text" name="customer_name" class="form-control form-control-lg" required placeholder="Enter client name...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">Billing Address (Optional)</label>
+                            <textarea class="form-control" rows="3" placeholder="Street, City, Zip..."></textarea>
+                        </div>
+                    </div>
                 </div>
                 
-                <button type="button" class="btn btn-secondary mb-3" onclick="addItemRow()">
-                    <i class="fas fa-plus"></i> Add Item
-                </button>
-
-                <div class="total-section p-3 bg-light rounded">
-                    Grand Total: $<span id="grandTotal">0.00</span>
-                    <input type="hidden" name="total_amount" id="inputGrandTotal" value="0">
+                <div class="card bg-primary text-white border-0">
+                    <div class="card-body p-4">
+                        <h6 class="text-white-50 text-uppercase small ls-1">Estimated Total</h6>
+                        <h2 class="display-4 fw-bold mb-0">$<span id="grandTotalDisplay">0.00</span></h2>
+                        <input type="hidden" name="total_amount" id="inputGrandTotal" value="0">
+                    </div>
                 </div>
+            </div>
 
-                <div class="mt-4 text-end">
-                    <a href="/" class="btn btn-light">Cancel</a>
-                    <button type="submit" class="btn btn-success btn-lg">Generate Invoice</button>
+            <!-- Line Items -->
+            <div class="col-lg-8">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Line Items</span>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="addItemRow()">
+                            <i class="fas fa-plus me-1"></i> Add Item
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table mb-0" id="itemsTable">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th style="width: 40%">Item Description</th>
+                                        <th style="width: 15%">Unit Price</th>
+                                        <th style="width: 15%">Qty</th>
+                                        <th style="width: 20%">Total</th>
+                                        <th style="width: 10%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itemsBody">
+                                    <!-- Items via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div id="emptyState" class="text-center py-5">
+                            <i class="fas fa-basket-shopping text-secondary opacity-25 fa-3x mb-3"></i>
+                            <p class="text-secondary">No items added yet.</p>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addItemRow()">Add First Item</button>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white p-3 text-end">
+                        <button type="submit" class="btn btn-success btn-lg px-5">
+                            <i class="fas fa-check-circle me-2"></i> Generate Invoice
+                        </button>
+                    </div>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
+    </form>
 </div>
 
 <script>
-    // Pass products from backend to JS
     const products = {{ products_json | safe }};
+    const tbody = document.getElementById('itemsBody');
+    const emptyState = document.getElementById('emptyState');
+
+    function checkEmpty() {
+        if (tbody.children.length === 0) {
+            emptyState.style.display = 'block';
+        } else {
+            emptyState.style.display = 'none';
+        }
+    }
 
     function addItemRow() {
-        const tbody = document.getElementById('itemsBody');
         const rowId = 'row-' + Date.now();
-        
-        let productOptions = '<option value="">Select Product...</option>';
+        let productOptions = '<option value="">Select Item...</option>';
         products.forEach(p => {
-            productOptions += `<option value="${p.id}" data-price="${p.price}">${p.name} - $${p.price.toFixed(2)}</option>`;
+            productOptions += `<option value="${p.id}" data-price="${p.price}">${p.name}</option>`;
         });
 
         const row = document.createElement('tr');
         row.id = rowId;
         row.innerHTML = `
             <td>
-                <select name="product_ids[]" class="form-control" onchange="updateRow('${rowId}')" required>
+                <select name="product_ids[]" class="form-select" onchange="updateRow('${rowId}')" required>
                     ${productOptions}
                 </select>
             </td>
             <td>
-                <input type="text" class="form-control price-display" readonly value="0.00">
-                <input type="hidden" name="prices[]" class="price-input">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text border-0 bg-light">$</span>
+                    <input type="text" class="form-control border-0 bg-light price-display text-end" readonly value="0.00">
+                    <input type="hidden" name="prices[]" class="price-input">
+                </div>
             </td>
             <td>
-                <input type="number" name="quantities[]" class="form-control" value="1" min="1" onchange="updateRow('${rowId}')" required>
+                <input type="number" name="quantities[]" class="form-control form-control-sm text-center" value="1" min="1" onchange="updateRow('${rowId}')" required>
             </td>
-            <td>
-                <span class="row-total fw-bold">$0.00</span>
-            </td>
-            <td>
-                <button type="button" class="btn btn-sm btn-danger" onclick="removeRow('${rowId}')">&times;</button>
+            <td class="text-end fw-bold align-middle row-total">$0.00</td>
+            <td class="text-end">
+                <button type="button" class="btn btn-link text-danger p-0" onclick="removeRow('${rowId}')">
+                    <i class="fas fa-times"></i>
+                </button>
             </td>
         `;
         tbody.appendChild(row);
+        checkEmpty();
     }
 
     function updateRow(rowId) {
@@ -324,7 +591,6 @@ CREATE_INVOICE_TEMPLATE = """
         const priceInput = row.querySelector('.price-input');
         const totalSpan = row.querySelector('.row-total');
 
-        // Get price from selected option dataset
         const selectedOption = select.options[select.selectedIndex];
         const price = parseFloat(selectedOption.getAttribute('data-price') || 0);
 
@@ -340,6 +606,7 @@ CREATE_INVOICE_TEMPLATE = """
     function removeRow(rowId) {
         document.getElementById(rowId).remove();
         calculateGrandTotal();
+        checkEmpty();
     }
 
     function calculateGrandTotal() {
@@ -347,12 +614,13 @@ CREATE_INVOICE_TEMPLATE = """
         document.querySelectorAll('.row-total').forEach(span => {
             total += parseFloat(span.innerText.replace('$', ''));
         });
-        document.getElementById('grandTotal').innerText = total.toFixed(2);
+        document.getElementById('grandTotalDisplay').innerText = total.toFixed(2);
         document.getElementById('inputGrandTotal').value = total;
     }
-
-    // Add one empty row on load
-    window.onload = addItemRow;
+    
+    // Initial Load
+    checkEmpty();
+    if (products.length > 0) addItemRow();
 </script>
 {% endblock %}
 """
@@ -360,60 +628,85 @@ CREATE_INVOICE_TEMPLATE = """
 VIEW_INVOICE_TEMPLATE = """
 {% extends "base" %}
 {% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2">
-        <div class="card p-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>INVOICE</h2>
-                <div class="text-end">
-                    <h5 class="text-muted">#{{ invoice.id }}</h5>
-                    <small>{{ invoice.date }}</small>
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="d-flex justify-content-between mb-4 no-print">
+            <a href="/" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back</a>
+            <button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print me-2"></i>Print Invoice</button>
+        </div>
+
+        <!-- Paper Sheet -->
+        <div class="invoice-sheet">
+            <div class="row mb-5">
+                <div class="col-6">
+                    <h1 class="fw-bold text-primary mb-2">INVOICE</h1>
+                    <p class="text-secondary">#INV-{{ "%05d"|format(invoice.id) }}</p>
+                </div>
+                <div class="col-6 text-end">
+                    <h4 class="fw-bold">NexusBilling Inc.</h4>
+                    <p class="text-secondary small mb-0">123 Corporate Blvd</p>
+                    <p class="text-secondary small mb-0">Tech City, CA 90210</p>
+                    <p class="text-secondary small">billing@nexus.com</p>
                 </div>
             </div>
 
-            <div class="mb-4">
-                <strong>Bill To:</strong><br>
-                <h4>{{ invoice.customer_name }}</h4>
+            <div class="row mb-5">
+                <div class="col-6">
+                    <p class="text-uppercase text-secondary small fw-bold mb-1">Bill To</p>
+                    <h5 class="fw-bold">{{ invoice.customer_name }}</h5>
+                    <p class="text-secondary small">Client ID: C-{{ "%04d"|format(invoice.id) }}</p>
+                </div>
+                <div class="col-6 text-end">
+                    <p class="text-uppercase text-secondary small fw-bold mb-1">Invoice Date</p>
+                    <h5 class="fw-bold">{{ invoice.date }}</h5>
+                </div>
             </div>
 
-            <table class="table table-striped">
-                <thead>
+            <table class="table table-striped mb-5">
+                <thead class="table-dark">
                     <tr>
-                        <th>Item</th>
-                        <th class="text-center">Qty</th>
-                        <th class="text-end">Price</th>
-                        <th class="text-end">Subtotal</th>
+                        <th class="ps-4">Description</th>
+                        <th class="text-center">Quantity</th>
+                        <th class="text-end">Unit Price</th>
+                        <th class="text-end pe-4">Amount</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in items %}
                     <tr>
-                        <td>{{ item.product_name }}</td>
+                        <td class="ps-4 fw-medium">{{ item.product_name }}</td>
                         <td class="text-center">{{ item.quantity }}</td>
-                        <td class="text-end">${{ "%.2f"|format(item.price) }}</td>
-                        <td class="text-end">${{ "%.2f"|format(item.subtotal) }}</td>
+                        <td class="text-end text-secondary">${{ "%.2f"|format(item.price) }}</td>
+                        <td class="text-end fw-bold pe-4">${{ "%.2f"|format(item.subtotal) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
 
-            <div class="row mt-4">
-                <div class="col-6"></div>
-                <div class="col-6">
-                    <div class="table-responsive">
-                        <table class="table">
-                            <tr class="table-dark">
-                                <th>Total:</th>
-                                <td class="text-end h4">${{ "%.2f"|format(invoice.total_amount) }}</td>
-                            </tr>
-                        </table>
+            <div class="row">
+                <div class="col-7">
+                    <p class="fw-bold mb-1">Payment Instructions</p>
+                    <p class="text-secondary small">Please make checks payable to NexusBilling Inc.<br>Bank Transfer: BOFA US32 1230 0000 1234</p>
+                </div>
+                <div class="col-5">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Subtotal</span>
+                        <span class="fw-medium">${{ "%.2f"|format(invoice.total_amount) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-secondary">Tax (0%)</span>
+                        <span class="fw-medium">$0.00</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold h5 mb-0">Total Due</span>
+                        <span class="fw-bold h3 text-primary mb-0">${{ "%.2f"|format(invoice.total_amount) }}</span>
                     </div>
                 </div>
             </div>
-
-            <div class="text-center mt-5 no-print">
-                <button onclick="window.print()" class="btn btn-secondary me-2"><i class="fas fa-print"></i> Print</button>
-                <a href="/" class="btn btn-primary">Back to Dashboard</a>
+            
+            <div class="mt-5 pt-5 text-center text-secondary small border-top">
+                <p class="mb-0">Thank you for your business!</p>
             </div>
         </div>
     </div>
@@ -429,22 +722,9 @@ VIEW_INVOICE_TEMPLATE = """
 
 
 def render_with_base(content_template, **kwargs):
-    full_template = HTML_TEMPLATE.replace('{% extends "base" %}', '').replace(
-        '{% block content %}', '{% block content %}' + content_template + '{% endblock %}')
-    # A cleaner way using Jinja's proper extension inheritance in strings requires a loader,
-    # but for single-file simplicity, we register the base as a template or just nest strings.
-    # To keep it extremely simple without dictionary loaders, we will just patch the strings.
-    # Actually, render_template_string supports inheritance if we define the parent in a dict loader
-    # OR we can just concatenation for this simple script.
-
-    # Let's use the simplest robust method:
-    # We will pass the templates as variables to a master renderer or just overwrite the blocks manually.
-    # But standard Jinja inheritance is tricky with just strings unless using a FunctionLoader.
-
-    # STRATEGY: We will just inject the child content into the HTML_TEMPLATE variable manually before rendering.
+    # STRATEGY: Inject the child content into the HTML_TEMPLATE variable.
     final_html = HTML_TEMPLATE.replace(
         '{% block content %}{% endblock %}', content_template)
-    # Remove the extends tag from child to avoid syntax error
     final_html = final_html.replace('{% extends "base" %}', '')
     return render_template_string(final_html, **kwargs)
 
@@ -562,6 +842,6 @@ def view_invoice(id):
 
 
 if __name__ == '__main__':
-    print("Starting Billing App...")
+    print("Starting Enterprise Billing App...")
     print("Go to http://127.0.0.1:5000 in your browser.")
     app.run(debug=True)
